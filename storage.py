@@ -1,14 +1,3 @@
-None selected
-
-Skip to content
-Using Gmail with screen readers
-Conversations
-3% of 15 GB used
-Terms · Privacy · Program Policies
-Last account activity: 7 minutes ago
-Details
-storage.py
-100%
 """Saving and loading tickets as JSON."""
 
 import json
@@ -36,4 +25,3 @@ def load_tickets(path=DATA_FILE):
         raise ValueError(f"'{path}' does not contain valid ticket data. "
                          "The file was not changed.")
     return tickets
-Displaying config.py.
