@@ -51,6 +51,7 @@ overwritten.
 
 | Path | Purpose |
 |------|---------|
+| `.gitignore` | specifies what to omit in staing to git hub |
 | `helpdesk.py` | Entry point: text menu and user input |
 | `config.py` | Shared constants (categories, urgencies, statuses, workflow moves, data file name) |
 | `validation.py` | Cleaning and validating title, category, urgency and affected users |
@@ -59,6 +60,8 @@ overwritten.
 | `test_validation.py` | Tests for `validation.py` |
 | `test_ticket_service.py` | Tests for `ticket_service.py` (priority, create, workflow, queue, reports) |
 | `test_storage.py` | Tests for `storage.py` |
+| `docs/design_decisions.md` | Why the project is built the way it is |
+| `docs/ai_learning_log.md` | How AI assistance was used and checked |
 
 Dependencies flow one way, with no circular imports:
 `config` <- `validation` <- `ticket_service`, `config` <- `storage`, and
