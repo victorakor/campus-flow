@@ -1,14 +1,3 @@
-None selected
-
-Skip to content
-Using Gmail with screen readers
-Conversations
-3% of 15 GB used
-Terms · Privacy · Program Policies
-Last account activity: 7 minutes ago
-Details
-validation.py
-100%
 """Input cleaning and validation helpers."""
 
 
@@ -31,4 +20,3 @@ def clean_users(value):
     if not (text.isascii() and text.isdigit()) or int(text) < 1:
         raise ValueError(f"Affected users must be a positive whole number (got '{value}').")
     return int(text)
-Displaying config.py.
