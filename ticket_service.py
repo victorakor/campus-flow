@@ -1,6 +1,8 @@
 """Core ticket logic: priority rules, workflow, queue and reports."""
 
+from clock import to_iso, utc_now
 from config import CATEGORIES, NEXT_STATUS, PRIORITIES, STATUSES, URGENCIES
+from sla import calculate_due_at
 from validation import clean_choice, clean_title, clean_users
 
 
@@ -18,12 +20,14 @@ def calculate_priority(urgency, affected_users):
 
 # ---------- Ticket operations ----------
 
-def create_ticket(tickets, title, category, urgency, users):
+def create_ticket(tickets, title, category, urgency, users, now=None):
     title = clean_title(title)
     category = clean_choice(category, CATEGORIES, "category")
     urgency = clean_choice(urgency, URGENCIES, "urgency")
     users = clean_users(users)
 
+    now = now or utc_now()
+    priority = calculate_priority(urgency, users)
     last_number = max((int(t["id"][1:]) for t in tickets), default=0)
     ticket = {
         "id": f"T{last_number + 1:03d}",
@@ -31,15 +35,31 @@ def create_ticket(tickets, title, category, urgency, users):
         "category": category,
         "urgency": urgency,
         "affected_users": users,
-        "priority": calculate_priority(urgency, users),
+        "priority": priority,
         "status": "open",
         "assigned_to": None,
+        "created_at": to_iso(now),
+        "updated_at": to_iso(now),
+        "due_at": to_iso(calculate_due_at(priority, now)),
+        "escalation_cycle": 0,
     }
     tickets.append(ticket)
     return ticket
 
-def duplicated_ticket_detect(category, title):
-    pass
+
+def normalize_title(title):
+    """Trim, casefold and collapse repeated whitespace."""
+    return " ".join(str(title).split()).casefold()
+
+
+def detect_duplicates(tickets, category, title):
+    """IDs of UNRESOLVED tickets with the same normalized title and category.
+    Read-only: it only warns, it never blocks."""
+    wanted = (normalize_title(title), clean_choice(category, CATEGORIES, "category"))
+    return [t["id"] for t in tickets
+            if t["status"] != "resolved"
+            and (normalize_title(t["title"]), t["category"]) == wanted]
+
 
 def find_ticket(tickets, ticket_id):
     for ticket in tickets:
@@ -75,10 +95,6 @@ def work_queue(tickets):
     pending = [t for t in tickets if t["status"] != "resolved"]
     return sorted(pending, key=lambda t: (PRIORITIES.index(t["priority"]),
                                           int(t["id"][1:])))
-
-def view_events(tickets):
-    pass
-
 
 def report(tickets):
     return {

@@ -79,3 +79,28 @@ lines also showed gaps worth fixing (for example, saving is not atomic).
   project.
 - What to submit, and how to describe each person's contribution in Git,
   is up to the team.
+
+---
+
+# Engineer B: AI learning cycles (fill in honestly; do not invent)
+
+Each cycle needs: (i) confusion/question, (ii) AI explanation or critique, (iii) your own mini-experiment,
+(iv) evidence (test/doc), (v) decision, (vi) commit/PR. At least one must show accepting-with-modification
+or rejecting advice, based on evidence.
+
+## Cycle B1: why an event is appended only after success
+- (i) Question: ____
+- (ii) AI said: ____
+- (iii) My experiment (e.g. the book-loan before/after record): ____
+- (iv) Evidence: `test_workflow.AuditTrailTests.test_rejected_transition_appends_no_event`
+- (v) Decision: ____   (vi) Commit/PR: ____
+
+## Cycle B2: duplicate normalization
+- (i)-(vi): ____   Evidence: `test_workflow.DuplicateTests`
+
+## Cycle B3: a bug the tests caught (real, from this build; verify and re-run it yourself)
+- Bug 1: `run_lab(input_fn=input)` bound the real `input` at import time, so a CLI test that mocked
+  `builtins.input` hung waiting on the keyboard. Fix: default `None`, look up `input` at call time.
+- Bug 2: the "at least 3 explanations" rule was off by one (first mandatory question was Q7, not Q8).
+  Caught by `test_explanation_rules_force_at_least_three`; fixed in `explanation_required`.
+- Your notes: what you changed in your understanding: ____

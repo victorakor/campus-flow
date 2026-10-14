@@ -159,3 +159,48 @@ little extra confidence.
 
 **Trade-off:** Menu wiring bugs (for example, a wrong option number) are not
 caught automatically.
+
+---
+
+# Engineer B additions
+
+## 15. Logged operations live in `workflow.py`, not inside `ticket_service.py`
+
+**Decision:** `create_ticket_logged`, `assign_ticket_logged` and `change_status_logged`
+call the ORIGINAL `create_ticket`, `assign_ticket` and `change_status`, then append the event.
+
+**Why:** The original rules and their tests stay untouched (regression safety). The order is
+validate -> change -> append event; if appending fails, the ticket and event list are restored.
+**Trade-off:** Callers must use the logged versions; calling the originals directly skips history.
+
+## 16. Current status AND history are both stored
+
+Status answers "where is it now" in O(1); events answer "who did what and when". Events are
+append-only and only written for successful changes, so a rejected action never appears as if it happened.
+
+## 17. Duplicates warn, they do not block
+
+**Decision:** `detect_duplicates(tickets, category, title)` returns unresolved matches (title trimmed,
+casefolded, whitespace collapsed; same category). The CLI asks for confirmation.
+**Why:** Repeat reports can be legitimate (the fault came back, a different room). Silent blocking would lose
+information; silent acceptance adds noise. **Trade-off:** One extra prompt for the user.
+
+## 18. Escalation marker and `escalation_cycle`
+
+`escalation_cycle` counts SLA cycles (0, +1 on each reopen). An ESCALATE event's details end with
+`cycle=N`; "already escalated" is DERIVED from the event list, so there is no second flag that could drift
+out of sync. Metric "escalated in current cycle" counts unresolved tickets (each once) that have an
+ESCALATE event for their current cycle. **Trade-off:** the marker is in a text field; a dedicated event
+field would be sturdier (schema change agreed with Engineer A).
+
+## 19. Two queues, two questions
+
+Original Open Work Queue = "what matters most" (priority, then ID, unchanged). SLA Attention Queue = "what is
+running out of time" (overdue, then `due_at`, then ID). They can legitimately disagree.
+
+## 20. Knowledge Lab is isolated and strict
+
+`run_lab` takes no ticket data. Only exact capital `A/B/C/D` is accepted. Scoring is a pure function
+(`score_answers`) so it can be tested. Explanations are stored, never auto-graded; at least three are forced.
+**Known limitation:** a user could guess letters; the explanation requirement and live mentor questions are the
+defence, not the score.
