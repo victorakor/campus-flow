@@ -21,6 +21,7 @@ MENU = """
 7. Reopen      (resolved -> open)
 8. Work queue
 9. Reports
+10.View all events
 0. Exit"""
 
 

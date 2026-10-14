@@ -38,6 +38,8 @@ def create_ticket(tickets, title, category, urgency, users):
     tickets.append(ticket)
     return ticket
 
+def duplicated_ticket_detect(category, title):
+    pass
 
 def find_ticket(tickets, ticket_id):
     for ticket in tickets:
@@ -73,6 +75,9 @@ def work_queue(tickets):
     pending = [t for t in tickets if t["status"] != "resolved"]
     return sorted(pending, key=lambda t: (PRIORITIES.index(t["priority"]),
                                           int(t["id"][1:])))
+
+def view_events(tickets):
+    pass
 
 
 def report(tickets):
