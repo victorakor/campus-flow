@@ -104,3 +104,38 @@ or rejecting advice, based on evidence.
 - Bug 2: the "at least 3 explanations" rule was off by one (first mandatory question was Q7, not Q8).
   Caught by `test_explanation_rules_force_at_least_three`; fixed in `explanation_required`.
 - Your notes: what you changed in your understanding: ____
+
+---
+
+# Engineer A: AI learning cycles (fill in honestly; do not invent)
+
+Run `python docs/experiments/lesson_experiments.py` and paste the REAL output as evidence. Only YOU can write the
+(i) question and (ii) what the AI said; use your actual chat. At least one cycle must show accept-with-modification or
+reject based on evidence. Ideas that match real decisions in this repo are given as prompts, not as pre-written answers.
+
+## Cycle A1: timezone-aware vs naive datetimes, and injecting `now`
+- (i) Question: ____
+- (ii) AI said: ____
+- (iii) My experiment: Lesson A in `lesson_experiments.py` (`A1`, `A2` lines). My prediction was ____, real output ____.
+- (iv) Evidence: `test_sla.OverdueBoundaryTests`, `test_clock.ClockTests`
+- (v) Decision: UTC everywhere, `now` injected (design decision 21). (vi) Commit/PR: ____
+
+## Cycle A2: idempotent escalation
+- (i) Question: ____   (ii) AI said: ____
+- (iii) My experiment: Lesson B counter (`B results: [True, False, False]`) ____
+- (iv) Evidence: `test_sla.EscalationTests.test_a3_running_twice_creates_exactly_one_event`
+- (v) Decision: derive "already escalated" from events instead of a stored flag (design decision 24). Did the AI suggest a
+  flag? Did you keep or reject it, and why? ____   (vi) Commit/PR: ____
+
+## Cycle A3: atomic writes and corrupted JSON
+- (i) Question: ____   (ii) AI said: ____
+- (iii) My experiment: Lesson D (`D in-memory state still: {'items': [1, 2, 3]}`) ____
+- (iv) Evidence: `test_state_storage.CorruptionTests`, `AtomicWriteTests`
+- (v) Decision: ____   (vi) Commit/PR: ____
+
+## Cycle A4 (recommended): accept-with-modification or reject
+Write about one AI suggestion you changed or rejected because a test or experiment disagreed. Do not fabricate one.
+- Real candidate from this project: the first escalation loop appended events one by one, so a failure part-way could leave
+  some tickets escalated. Reproduce it yourself by reverting `escalate_overdue` to appending directly to `events`
+  and running `test_a6_failed_run_leaves_events_untouched` (it fails), then restore the staged version. What did you learn? ____
+

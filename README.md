@@ -92,3 +92,17 @@ New files: `clock.py`, `history.py`, `workflow.py`, `reports.py`, `sla.py`*,
 `knowledge_lab.py`, and `test_workflow.py`, `test_reports.py`,
 `test_knowledge_lab.py`, `test_cli.py`. (*`sla.py` and the v2 section of `storage.py`
 are Engineer A's area, implemented to the agreed contract so B's work runs.)
+
+## CampusFlow Pro additions (Engineer A: SLA, escalation, data integrity)
+
+- **SLA:** critical 60 min, high 240, medium 1440, low 2880. `due_at = cycle_start + SLA`. Overdue only when
+  `now` is strictly later than `due_at` and the ticket is not resolved. Reopening starts a new SLA cycle.
+- **Escalation (menu 7):** one ESCALATE event per overdue ticket per cycle; re-running creates no duplicates. It never
+  assigns, re-prioritises or changes status. Runs all-or-nothing.
+- **Persistence:** `{schema_version: 2, tickets, events}`, validated before use, saved atomically (temp file +
+  `os.replace`). A corrupt or inconsistent file is rejected and never overwritten.
+- **Legacy file:** an old list-style `tickets.json` is rejected with a hint. Run `python helpdesk.py --migrate` to convert it;
+  the original is kept as `tickets.json.legacy-backup` and no history or timestamps are invented.
+- **Tests:** `test_clock.py`, `test_sla.py`, `test_state_storage.py` (Engineer A). Run everything with `python -m unittest -v`.
+- **Experiments:** `docs/experiments/lesson_experiments.py` (Lessons A-D).
+

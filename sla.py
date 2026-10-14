@@ -22,18 +22,25 @@ def is_overdue(ticket, now=None):
 
 
 def escalate_overdue(tickets, events, now=None, actor="system"):
-    """One ESCALATE event per ticket per SLA cycle (derived from the event list)."""
+    """One ESCALATE event per ticket per SLA cycle (derived from the event list).
+
+    All-or-nothing: events are staged on a copy and only added to ``events`` once
+    every one succeeded, so a failure can never leave a half-finished run.
+    Tickets are never modified (no assignment, priority or status change)."""
+    actor = history.clean_actor(actor)                 # reject a blank label up front
     now = now or utc_now()
+    staged = list(events)
     new, already = [], []
     for t in sorted(tickets, key=lambda t: int(t["id"][1:])):
         if not is_overdue(t, now):
             continue
-        if history.has_escalation_in_cycle(events, t["id"], t["escalation_cycle"]):
+        if history.has_escalation_in_cycle(staged, t["id"], t["escalation_cycle"]):
             already.append(t["id"])
             continue
-        history.append_event(events, t["id"], "ESCALATE", actor, now, t["status"],
+        history.append_event(staged, t["id"], "ESCALATE", actor, now, t["status"],
                              t["status"], "SLA overdue; "
                              + history.escalation_marker(t["escalation_cycle"]))
         new.append(t["id"])
+    events.extend(staged[len(events):])                # commit only after full success
     return {"newly_escalated": len(new), "already_escalated": len(already),
             "new_ids": new, "already_ids": already}

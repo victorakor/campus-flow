@@ -11,7 +11,7 @@ from history import clean_actor, format_event, ticket_history
 from knowledge_lab import run_lab
 from reports import sla_attention_queue, sla_metrics
 from sla import escalate_overdue, is_overdue
-from storage import load_state, save_state
+from storage import is_legacy_format, load_state, migrate_legacy, save_state
 from ticket_service import find_ticket, report, work_queue
 from validation import clean_choice, clean_title, clean_users
 from workflow import (assign_ticket_logged, change_status_logged,
@@ -83,6 +83,9 @@ def main(data_file=DATA_FILE, sessions_dir=LAB_SESSIONS_DIR):
         tickets, events = load_state(data_file)
     except ValueError as e:
         print(f"Error: {e}")
+        if is_legacy_format(data_file):
+            print("Hint: run  python helpdesk.py --migrate  to convert it "
+                  "(your original is backed up first).")
         return
 
     try:
@@ -185,5 +188,25 @@ def main(data_file=DATA_FILE, sessions_dir=LAB_SESSIONS_DIR):
             break
 
 
+def run_migration(data_file=DATA_FILE):
+    """Explicit, user-invoked legacy migration (never runs automatically)."""
+    print(f"Migrate '{data_file}' from the old list format to schema version 2.")
+    print("The original is copied to a backup first. The old file had no timestamps,")
+    print("so created/updated/due times are set to NOW and no history is invented.")
+    if input("Continue? (yes/no): ").strip().lower() not in ("yes", "y"):
+        print("Cancelled. Nothing was changed.")
+        return
+    try:
+        r = migrate_legacy(data_file)
+    except ValueError as e:
+        print(f"Error: {e}")
+        return
+    print(f"Migrated {r['migrated']} ticket(s). Backup: {r['backup']}")
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--migrate" in sys.argv[1:]:
+        run_migration()
+    else:
+        main()

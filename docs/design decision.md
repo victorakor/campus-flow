@@ -204,3 +204,71 @@ running out of time" (overdue, then `due_at`, then ID). They can legitimately di
 (`score_answers`) so it can be tested. Explanations are stored, never auto-graded; at least three are forced.
 **Known limitation:** a user could guess letters; the explanation requirement and live mentor questions are the
 defence, not the score.
+
+---
+
+# Engineer A additions (SLA, escalation, data integrity)
+
+## 21. Time is UTC, aware, and injected
+
+**Decision:** Every timestamp is a timezone-aware UTC datetime stored as an ISO-8601 string ending in `+00:00`
+(`clock.py`). `to_iso` rejects naive datetimes and `parse_iso` rejects strings with no offset. Every function that
+needs the time takes `now=None` and only falls back to `utc_now()` when nothing is passed.
+**Why:** Naive local time is ambiguous (daylight saving, different server zones) and Python refuses to compare naive
+with aware values. `datetime.now()` returns a different value on every call, so a test could never assert an exact
+overdue boundary; an injected clock lets tests pin "10:00" and "11:01" without waiting.
+**Trade-off:** Every caller must thread `now` through; the CLI lets the operator type a time to demo overdue states.
+
+## 22. Overdue is strictly later than `due_at`
+
+**Decision:** `is_overdue` = `status != resolved and now > due_at`. At exactly `due_at` the ticket is due but NOT overdue.
+Tests: `test_sla.OverdueBoundaryTests` (60 min false, 61 min true, +1 second true).
+**Why:** the guide defines the SLA as a deadline you may still meet at the deadline instant.
+
+## 23. SLA cycle start is not `created_at`
+
+**Decision:** `due_at = cycle_start + SLA minutes`. For a new ticket cycle_start is `created_at`; a reopen starts a new
+cycle at the reopen timestamp, keeps `created_at`, resets `due_at` and increments `escalation_cycle`.
+**Why:** a ticket reopened days later must not be instantly overdue against its original deadline, and the original
+creation time is history that must not change. **Trade-off:** `created_at` alone can no longer explain `due_at`; the
+event list (REOPEN event details include the new due date) is the record of cycle starts.
+
+## 24. One escalation per cycle is DERIVED from events (no second flag)
+
+**Decision:** `escalate_overdue` skips a ticket if an ESCALATE event whose details end with `cycle=N` already exists for
+its current `escalation_cycle`. There is no `escalated_cycle` field to keep in sync.
+**Why:** a stored flag and the event list could drift apart; the audit trail is the single source of truth, so re-running
+the command at the same or a later time is naturally idempotent. A reopen bumps the cycle, so the new cycle may escalate again.
+**Trade-off:** the marker lives in a text field (`details`); a dedicated event field would be sturdier. Escalation never
+assigns, re-prioritises or changes status.
+
+## 25. Escalation is all-or-nothing
+
+**Decision:** events are staged on a copy and added to the real list only after every ticket was processed; the operator
+label is validated first. **Why:** a mid-run failure must not leave some tickets escalated and others not
+(`test_a6_failed_run_leaves_events_untouched`).
+
+## 26. Atomic saves, validate-before-replace loads
+
+**Decision:** `save_state` validates, writes a temp file in the same folder, `fsync`s, then `os.replace`s; on any error
+the temp file is removed. `load_state` parses and fully validates before returning anything, and the CLI only swaps its
+in-memory lists after that returns. **Why:** a crash while writing can only lose the temp file, never the good file
+(the old `save_tickets` wrote in place and could truncate it). A corrupt file raises `ValueError`; the program keeps its
+current valid state and never overwrites the file with empty defaults. No `eval()` anywhere: only `json`.
+**Where data loss could still happen:** the OS could lose power between `os.replace` and the disk flush of the directory
+entry; we accept that for a CLI tool. Two programs saving at once would be last-writer-wins (no file locking).
+
+## 27. Validation checks relationships, not just field names
+
+**Decision:** `validate_state` also checks id formats and uniqueness, enum values, positive `affected_users`,
+priority = `calculate_priority(urgency, users)`, `in_progress` implies assigned, `updated_at >= created_at`,
+`due_at >= created_at + SLA`, events point at real tickets, only CREATE has no `before_status`.
+**Trade-off:** a hand-edited file that is "reasonable but unusual" is rejected; the error message says what is wrong.
+
+## 28. Legacy migration is explicit and honest (optional stretch)
+
+**Decision:** `python helpdesk.py --migrate` (asks for confirmation) copies the old list file byte-for-byte to
+`tickets.json.legacy-backup` (never overwritten), then writes schema 2. The old file has no timestamps, so
+`created_at`, `updated_at` and `due_at` are the MIGRATION moment and no events are invented: migrated tickets start with
+an empty history. **Trade-off:** SLA clocks of migrated tickets start at migration time, not when the issue was really raised.
+
