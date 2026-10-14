@@ -1,9 +1,9 @@
 """Read-only SLA queue and metrics. Nothing here modifies tickets or events."""
 
-from clock import parse_iso, utc_now
-from config import PRIORITIES
-from history import has_escalation_in_cycle
-from sla import is_overdue
+from .clock import parse_iso, utc_now
+from .config import PRIORITIES
+from .history import has_escalation_in_cycle
+from .sla import is_overdue
 
 
 def sla_attention_queue(tickets, now=None):

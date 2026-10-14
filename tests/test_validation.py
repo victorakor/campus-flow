@@ -1,7 +1,7 @@
 import unittest
 
-from config import CATEGORIES
-from validation import clean_choice, clean_title, clean_users
+from campusflow.config import CATEGORIES
+from campusflow.validation import clean_choice, clean_title, clean_users
 
 
 class CleanChoiceTests(unittest.TestCase):

@@ -1,9 +1,9 @@
 import unittest
 from datetime import datetime, timedelta, timezone
 
-from reports import sla_attention_queue, sla_metrics
-from sla import escalate_overdue
-from workflow import (assign_ticket_logged, change_status_logged,
+from campusflow.reports import sla_attention_queue, sla_metrics
+from campusflow.sla import escalate_overdue
+from campusflow.workflow import (assign_ticket_logged, change_status_logged,
                       create_ticket_logged)
 
 T0 = datetime(2026, 10, 14, 10, 0, tzinfo=timezone.utc)

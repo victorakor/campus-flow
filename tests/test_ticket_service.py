@@ -1,6 +1,6 @@
 import unittest
 
-from ticket_service import (assign_ticket, calculate_priority, change_status,
+from campusflow.ticket_service import (assign_ticket, calculate_priority, change_status,
                             create_ticket, find_ticket, report, work_queue)
 
 

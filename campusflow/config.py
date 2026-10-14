@@ -1,6 +1,9 @@
 """Shared constants for CampusFlow."""
 
-DATA_FILE = "tickets.json"
+import os
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_FILE = os.path.join(PROJECT_ROOT, "data", "tickets.json")
 
 CATEGORIES = ["Network", "Hardware", "Software", "Other"]
 URGENCIES = ["low", "medium", "high"]
@@ -22,4 +25,4 @@ EVENT_TYPES = ["CREATE", "ASSIGN", "START", "RESOLVE", "REOPEN", "ESCALATE"]
 # status we are moving INTO -> audit event type
 STATUS_EVENT = {"in_progress": "START", "resolved": "RESOLVE", "open": "REOPEN"}
 SLA_MINUTES = {"critical": 60, "high": 240, "medium": 1440, "low": 2880}
-LAB_SESSIONS_DIR = "lab_sessions"
+LAB_SESSIONS_DIR = os.path.join(PROJECT_ROOT, "lab_sessions")

@@ -2,9 +2,9 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
-import history
-from ticket_service import detect_duplicates
-from workflow import (assign_ticket_logged, change_status_logged,
+from campusflow import history
+from campusflow.ticket_service import detect_duplicates
+from campusflow.workflow import (assign_ticket_logged, change_status_logged,
                       create_ticket_logged)
 
 T0 = datetime(2026, 10, 14, 10, 0, tzinfo=timezone.utc)      # fixed clock
@@ -54,7 +54,7 @@ class AuditTrailTests(unittest.TestCase):
         make(tickets, events)
         assign_ticket_logged(tickets, events, "T001", "Bob", "ada", now=at(1))
         before_t, before_e = [dict(t) for t in tickets], [dict(e) for e in events]
-        with mock.patch("history.append_event", side_effect=RuntimeError("disk")):
+        with mock.patch("campusflow.history.append_event", side_effect=RuntimeError("disk")):
             with self.assertRaises(RuntimeError):
                 change_status_logged(tickets, events, "T001", "in_progress", "bob", now=at(2))
             with self.assertRaises(RuntimeError):

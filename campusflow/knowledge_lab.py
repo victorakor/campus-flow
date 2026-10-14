@@ -6,8 +6,8 @@ import json
 import os
 import tempfile
 
-from clock import to_iso, utc_now
-from config import LAB_SESSIONS_DIR
+from .clock import to_iso, utc_now
+from .config import LAB_SESSIONS_DIR
 
 PARTICIPANTS = ("A", "B")
 VALID_CHOICES = ("A", "B", "C", "D")

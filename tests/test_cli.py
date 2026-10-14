@@ -6,8 +6,8 @@ import tempfile
 import unittest
 from unittest import mock
 
-import helpdesk
-import knowledge_lab as lab
+from campusflow import cli as helpdesk
+import campusflow.knowledge_lab as lab
 
 CORRECT = [q[4] for q in lab.QUESTIONS]
 

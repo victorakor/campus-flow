@@ -4,13 +4,13 @@ Rule: validate -> change the ticket -> append the event. An event exists only
 for an operation that succeeded; any failure leaves tickets AND events as they
 were before the call."""
 
-import history
-from clock import to_iso, utc_now
-from config import CATEGORIES, STATUS_EVENT, URGENCIES
-from sla import calculate_due_at
-from ticket_service import (assign_ticket, change_status, create_ticket,
+from . import history
+from .clock import to_iso, utc_now
+from .config import CATEGORIES, STATUS_EVENT, URGENCIES
+from .sla import calculate_due_at
+from .ticket_service import (assign_ticket, change_status, create_ticket,
                             detect_duplicates, find_ticket)
-from validation import clean_choice, clean_title, clean_users
+from .validation import clean_choice, clean_title, clean_users
 
 
 def _restore(ticket, snapshot, events, event_count):

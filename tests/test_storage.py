@@ -2,8 +2,8 @@ import os
 import tempfile
 import unittest
 
-from storage import load_tickets, save_tickets
-from ticket_service import create_ticket
+from campusflow.storage import load_tickets, save_tickets
+from campusflow.ticket_service import create_ticket
 
 
 def new_ticket(tickets, urgency="low", users=1):

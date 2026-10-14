@@ -1,9 +1,9 @@
 """Core ticket logic: priority rules, workflow, queue and reports."""
 
-from clock import to_iso, utc_now
-from config import CATEGORIES, NEXT_STATUS, PRIORITIES, STATUSES, URGENCIES
-from sla import calculate_due_at
-from validation import clean_choice, clean_title, clean_users
+from .clock import to_iso, utc_now
+from .config import CATEGORIES, NEXT_STATUS, PRIORITIES, STATUSES, URGENCIES
+from .sla import calculate_due_at
+from .validation import clean_choice, clean_title, clean_users
 
 
 # ---------- Priority (checked in order, first match wins) ----------

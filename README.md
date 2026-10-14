@@ -8,15 +8,15 @@ Priority is calculated by plain Python rules, not by an AI model.
 
 ## Run
 
-Requires Python 3.8+ (no extra packages). From the project folder:
+Requires Python 3.8+ (no extra packages). From the project folder (data is stored in `data/tickets.json`):
 
-    python helpdesk.py
+    python main.py
 
 ## Test
 
     python -m unittest -v
 
-All modules and tests sit in the same folder, so run both commands from there.
+Run both commands from the project root. `python -m unittest` finds everything in `tests/`.
 
 ## Rules
 
@@ -49,27 +49,35 @@ overwritten.
 
 ## Project structure
 
-| Path | Purpose |
-|------|---------|
-| `.gitignore` | specifies what to omit in staing to git hub |
-| `helpdesk.py` | Entry point: text menu and user input |
-| `config.py` | Shared constants (categories, urgencies, statuses, workflow moves, data file name) |
-| `validation.py` | Cleaning and validating title, category, urgency and affected users |
-| `ticket_service.py` | Priority rules, create/find/assign tickets, status changes, work queue, report counts |
-| `storage.py` | Saving and loading `tickets.json` |
-| `test_validation.py` | Tests for `validation.py` |
-| `test_ticket_service.py` | Tests for `ticket_service.py` (priority, create, workflow, queue, reports) |
-| `test_storage.py` | Tests for `storage.py` |
-| `docs/design_decisions.md` | Why the project is built the way it is |
-| `docs/ai_learning_log.md` | How AI assistance was used and checked |
+```
+campus-flow/
+├── main.py                  entry point (python main.py [--migrate])
+├── README.md
+├── .gitignore
+├── campusflow/              the application package
+│   ├── cli.py               text menu and user interaction
+│   ├── config.py            shared constants and file locations
+│   ├── validation.py        cleaning title, category, urgency, affected users
+│   ├── ticket_service.py    priority rules, create/assign/status, work queue, duplicates
+│   ├── workflow.py          logged operations (change ticket, then append event)
+│   ├── history.py           append-only audit trail
+│   ├── sla.py               due dates, overdue check, idempotent escalation
+│   ├── reports.py           SLA attention queue and metrics (read-only)
+│   ├── storage.py           JSON save/load (v2, atomic), legacy migration
+│   ├── clock.py             UTC time helpers
+│   └── knowledge_lab.py     Engineering Knowledge Lab quiz
+├── tests/                   unittest suites (original + new)
+├── docs/                    design decisions, AI learning log, reflections, experiments
+├── lab_sessions/            saved quiz sessions for mentors
+└── data/                    tickets.json lives here (git-ignored, created on first save)
+```
 
 Dependencies flow one way, with no circular imports:
-`config` <- `validation` <- `ticket_service`, `config` <- `storage`, and
-`helpdesk.py` imports from all of them.
+modules inside `campusflow/` use relative imports; `cli.py` imports from all of them and `main.py` only calls `cli`.
 
 ## CampusFlow Pro additions (Engineer B: history, queues, duplicates, CLI, lab)
 
-Run `python helpdesk.py`. You are asked for an **operator label** (traceability
+Run `python main.py`. You are asked for an **operator label** (traceability
 only, not verified identity). Menu: 1 Create, 2 Assign, 3 Start/resolve/reopen,
 4 Original Open Work Queue, 5 SLA Attention Queue, 6 Ticket history,
 7 Check and escalate overdue, 8 Reports, 9 Save/load, 10 Engineering Knowledge
@@ -92,3 +100,17 @@ New files: `clock.py`, `history.py`, `workflow.py`, `reports.py`, `sla.py`*,
 `knowledge_lab.py`, and `test_workflow.py`, `test_reports.py`,
 `test_knowledge_lab.py`, `test_cli.py`. (*`sla.py` and the v2 section of `storage.py`
 are Engineer A's area, implemented to the agreed contract so B's work runs.)
+
+## CampusFlow Pro additions (Engineer A: SLA, escalation, data integrity)
+
+- **SLA:** critical 60 min, high 240, medium 1440, low 2880. `due_at = cycle_start + SLA`. Overdue only when
+  `now` is strictly later than `due_at` and the ticket is not resolved. Reopening starts a new SLA cycle.
+- **Escalation (menu 7):** one ESCALATE event per overdue ticket per cycle; re-running creates no duplicates. It never
+  assigns, re-prioritises or changes status. Runs all-or-nothing.
+- **Persistence:** `{schema_version: 2, tickets, events}`, validated before use, saved atomically (temp file +
+  `os.replace`). A corrupt or inconsistent file is rejected and never overwritten.
+- **Legacy file:** an old list-style `tickets.json` is rejected with a hint. Run `python main.py --migrate` to convert it;
+  the original is kept as `tickets.json.legacy-backup` and no history or timestamps are invented.
+- **Tests:** `test_clock.py`, `test_sla.py`, `test_state_storage.py` (Engineer A). Run everything with `python -m unittest -v`.
+- **Experiments:** `docs/lesson_experiments.py` (Lessons A-D).
+

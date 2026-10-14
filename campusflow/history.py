@@ -3,8 +3,8 @@ an event only AFTER the business operation has succeeded."""
 
 import re
 
-from clock import parse_iso, to_iso
-from config import EVENT_TYPES
+from .clock import parse_iso, to_iso
+from .config import EVENT_TYPES
 
 
 def clean_actor(value):

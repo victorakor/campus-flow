@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from datetime import datetime, timezone
 
-import knowledge_lab as lab
+import campusflow.knowledge_lab as lab
 
 NOW = datetime(2026, 10, 14, 10, 0, tzinfo=timezone.utc)
 CORRECT = {q[0]: q[4] for q in lab.QUESTIONS}
@@ -97,7 +97,7 @@ class SessionTests(unittest.TestCase):
         self.assertGreaterEqual(sum("Error" in line for line in out), 20)
 
     def test_quiz_leaves_ticket_state_untouched(self):          # must-test 16
-        from workflow import create_ticket_logged
+        from campusflow.workflow import create_ticket_logged
         tickets, events = [], []
         create_ticket_logged(tickets, events, "Printer", "Hardware", "low", 1, "ada", now=NOW)
         before = json.dumps([tickets, events], sort_keys=True)
