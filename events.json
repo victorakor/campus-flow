@@ -1,0 +1,14 @@
+{
+  "events": [
+    {
+      "event_id": "",
+      "ticket_id": "",
+      "event_type": "",
+      "actor": "",
+      "timestamp": "",
+      "before_status": "",
+      "after_status": "",
+      "details": ""
+    }
+  ]
+}

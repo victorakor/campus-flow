@@ -4,3 +4,4 @@ tickets.json
 .venv/
 .idea/
 .vscode/
+*.tmp

@@ -1,4 +1,4 @@
-# CampusFlow
+# CampusFlow Pro
 
 A simple text-based IT help desk ticket tracker. Create tickets, assign them,
 move them through a workflow, see a prioritized work queue, and view reports.
@@ -66,3 +66,29 @@ overwritten.
 Dependencies flow one way, with no circular imports:
 `config` <- `validation` <- `ticket_service`, `config` <- `storage`, and
 `helpdesk.py` imports from all of them.
+
+## CampusFlow Pro additions (Engineer B: history, queues, duplicates, CLI, lab)
+
+Run `python helpdesk.py`. You are asked for an **operator label** (traceability
+only, not verified identity). Menu: 1 Create, 2 Assign, 3 Start/resolve/reopen,
+4 Original Open Work Queue, 5 SLA Attention Queue, 6 Ticket history,
+7 Check and escalate overdue, 8 Reports, 9 Save/load, 10 Engineering Knowledge
+Lab, 11 List all tickets, 12 View one ticket, 0 Exit. Options 5, 7 and 8 accept an
+optional UTC time (blank = now) so overdue behaviour can be demonstrated.
+
+- **Audit trail:** CREATE, ASSIGN, START, RESOLVE, REOPEN and ESCALATE append an
+  event only after the operation succeeds. Rejected actions change nothing.
+- **Duplicate warning:** same normalized title + category among unresolved tickets
+  shows the matching IDs and asks for confirmation; declining creates nothing.
+- **SLA Attention Queue:** unresolved tickets, overdue first, then earliest `due_at`,
+  then ticket number. The original work queue (option 4) is unchanged.
+- **Knowledge Lab:** 10 scenario questions, exact `A/B/C/D` only, explanations
+  (at least 3 required), score + revision topics, session saved as JSON in
+  `lab_sessions/`. It never receives or changes ticket data.
+- **Data file:** `tickets.json` is now `{schema_version: 2, tickets, events}`. An old
+  list-style file is rejected with a message (not overwritten).
+
+New files: `clock.py`, `history.py`, `workflow.py`, `reports.py`, `sla.py`*,
+`knowledge_lab.py`, and `test_workflow.py`, `test_reports.py`,
+`test_knowledge_lab.py`, `test_cli.py`. (*`sla.py` and the v2 section of `storage.py`
+are Engineer A's area, implemented to the agreed contract so B's work runs.)
